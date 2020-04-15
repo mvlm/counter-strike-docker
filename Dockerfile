@@ -1,17 +1,15 @@
 FROM debian:stretch-slim
 
-LABEL maintainer "Vladislav Mozgovoy <vladzikus@gmail.com>"
-
 ARG steam_user="anonymous"
 ARG steam_password=""
-ARG metamod_version="1.21.1-am"
-ARG amxmod_version="1.8.2"
 
 RUN apt update && apt install -y \
     lib32gcc1 \
     curl \
     lib32stdc++6 \
     unzip \
+    mc \
+    rsync \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -30,6 +28,9 @@ RUN mkdir -p /opt/hlds \
     && ln -s /opt/hlds ~/.steam/sdk32 \
     && ln -s /opt/steam/ /opt/hlds/steamcmd
 
+ARG metamod_version="1.21.1-am"
+ARG amxmod_version="1.8.2"
+
 # Install metamod
 RUN mkdir -p /opt/hlds/cstrike/addons/metamod/dlls \
     && curl -O http://www.amxmodx.org/release/metamod-$metamod_version.zip \
@@ -40,12 +41,10 @@ RUN mkdir -p /opt/hlds/cstrike/addons/metamod/dlls \
 RUN curl -sqL "http://www.amxmodx.org/release/amxmodx-$amxmod_version-base-linux.tar.gz" | tar -C /opt/hlds/cstrike/ -zxvf - \
     && curl -sqL "http://www.amxmodx.org/release/amxmodx-$amxmod_version-cstrike-linux.tar.gz" | tar -C /opt/hlds/cstrike/ -zxvf -
 
-# Cleanup
-RUN apt remove -y curl unzip
-
 # Add files
-ADD hlds /opt/hlds
-ADD hlds_run.sh /bin/hlds_run.sh
+COPY hlds_run.sh /bin/hlds_run.sh
+COPY hlds_sync /opt/hlds_sync
+COPY hlds_tpl /opt/hlds_tpl
 
 ENV LD_LIBRARY_PATH=/opt/hlds
 

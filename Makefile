@@ -26,6 +26,11 @@ build:
 	--build-arg steam_user=$(STEAM_USER) \
 	--build-arg steam_password=$(STEAM_PASSWORD) .
 
+.PHONY: start
+start:
+	$(MAKE) build
+	docker-compose up -d
+
 .PHONY: test
 test: shellcheck test-smoke test-clean
 

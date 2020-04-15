@@ -1,7 +1,0 @@
-version: '2'
-services:
-  hlds:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG}

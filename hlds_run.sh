@@ -1,16 +1,6 @@
 #!/usr/bin/env bash
 
-set -axe
-
-CONFIG_FILE="/opt/hlds/startup.cfg"
-
-if [ -r "${CONFIG_FILE}" ]; then
-    # TODO: make config save/restore mechanism more solid
-    set +e
-    # shellcheck source=/dev/null
-    source "${CONFIG_FILE}"
-    set -e
-fi
+set -aeo pipefail
 
 EXTRA_OPTIONS=( "$@" )
 
@@ -22,7 +12,7 @@ SERVER_NAME="${SERVER_NAME:-Counter-Strike 1.6 Server}"
 
 if [ "${HLTV}" == "true" ]; then
     EXECUTABLE="/opt/hlds/hltv"
-    OPTIONS=( "+connect" "${HLTV_SERVER}" "-port" "${HLTV_PORT}")
+    OPTIONS=( "+connect" "${HLTV_SERVER}" "-port" "${HLTV_PORT}" "+serverpassword" "${SERVER_PASSWORD}" "+spectatorpassword" "${SPECTATOR_PASSWORD}")
 else
     OPTIONS=( "-game" "${GAME}" "+maxplayers" "${MAXPLAYERS}" "+map" "${START_MAP}" "+hostname" "\"${SERVER_NAME}\"")
 fi
@@ -31,11 +21,17 @@ if [ -z "${RESTART_ON_FAIL}" ]; then
     OPTIONS+=('-norestart')
 fi
 
-for ADMIN_STEAM in ${STEAM_ADMINS}
-do
-    echo "\"STEAM_${ADMIN_STEAM}\" \"\"  \"abcdefghijklmnopqrstu\" \"ce\"" >> "/opt/hlds/cstrike/addons/amxmodx/configs/users.ini"
+# Add steam ids to sourcemod admin file
+> "/opt/hlds/cstrike/addons/amxmodx/configs/users.ini"
+IFS=',' read -ra STEAMIDS <<< "$STEAM_ADMINS"
+for id in "${STEAMIDS[@]}"; do
+    echo "\"$id\" \"\"  \"abcdefghijklmnopqrstu\" \"ce\"" >> "/opt/hlds/cstrike/addons/amxmodx/configs/users.ini"
 done
 
-set > "${CONFIG_FILE}"
+# Update csgo dir
+rsync -r "/opt/hlds_sync/" "/opt/hlds/"
+
+# Make configs from templates
+find "/opt/hlds_tpl" -type f -exec sh -c 'FILE=$(echo {} | sed "s|/opt/hlds_tpl/||"); ( echo "cat <<EOF"; cat "/opt/hlds_tpl/$FILE"; echo "EOF" ) | sh > "/opt/hlds/$FILE"' \;
 
 exec "${EXECUTABLE}" "${OPTIONS[@]}" "${EXTRA_OPTIONS[@]}"

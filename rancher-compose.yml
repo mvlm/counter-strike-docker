@@ -1,8 +1,0 @@
-version: '2'
-services:
-  hlds:
-    scale: 1
-    start_on_create: true
-  hltv:
-    scale: 1
-    start_on_create: true

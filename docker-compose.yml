@@ -1,26 +1,49 @@
-version: '2'
+version: '3.7'
+
+volumes:
+  hlds-data:
+
+x-anchors:
+  - &logs
+    logging:
+      driver: json-file
+      options:
+        max-file: '5'
+        max-size: 20m
+
 services:
   hlds:
-    image: ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG}
+    image: ${IMAGE_NAME}:${IMAGE_TAG}
     environment:
-      - GAME
-      - MAXPLAYERS
-      - START_MAP
-      - SERVER_NAME
-      - STEAM_ADMINS
+      GAME:
+      MAXPLAYERS:
+      START_MAP:
+      SERVER_NAME:
+      STEAM_ADMINS:
+      SERVER_PASSWORD:
+      RCON_PASSWORD:
+    volumes:
+      - type: volume
+        source: hlds-data
+        target: /opt/hlds
     ports:
       - ${PORT}:27015/udp
-    labels:
-      io.rancher.container.pull_image: always
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    <<: *logs
+
   hltv:
-    image: ${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG}
+    image: ${IMAGE_NAME}:${IMAGE_TAG}
     environment:
-      - HLTV=true
-      - HLTV_SERVER
-      - HLTV_PORT
-    links:
-      - hlds:hlds
+      HLTV: "true"
+      HLTV_SERVER:
+      HLTV_PORT:
+      SERVER_PASSWORD:
+      SPECTATOR_PASSWORD:
     ports:
       - ${HLTV_PORT}:${HLTV_PORT}/udp
-    labels:
-      io.rancher.container.pull_image: always
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    <<: *logs
