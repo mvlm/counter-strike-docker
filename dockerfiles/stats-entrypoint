@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# Make config
+( echo "cat <<EOF"; cat /home/stats/stats.cfg.tpl; echo "EOF" ) | sh > /home/stats/stats.cfg
+
+exec "$@"

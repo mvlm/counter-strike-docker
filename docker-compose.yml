@@ -1,7 +1,8 @@
 version: '3.7'
 
 volumes:
-  hlds-data:
+  hlds-data: {}
+  mysql-data: {}
 
 x-anchors:
   - &logs
@@ -22,6 +23,8 @@ services:
       STEAM_ADMINS:
       SERVER_PASSWORD:
       RCON_PASSWORD:
+      HLSTATS_DAEMON_IP:
+      HLSTATS_DAEMON_PORT:
     volumes:
       - type: volume
         source: hlds-data
@@ -46,4 +49,38 @@ services:
     restart: unless-stopped
     stdin_open: true
     tty: true
+    <<: *logs
+
+  mysql:
+    image: mysql:5.5.62
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD:
+      MYSQL_USER: "hlds"
+      MYSQL_PASSWORD:
+      MYSQL_DATABASE: "hlds"
+    restart: unless-stopped
+    <<: *logs
+
+  stats:
+    image: ${IMAGE_NAME}:stats-${IMAGE_TAG}
+    environment:
+      DB_ADDR: "mysql"
+      DB_USER: "hlds"
+      DB_PASS: ${MYSQL_PASSWORD}
+      DB_NAME: "hlds"
+    restart: unless-stopped
+    ports:
+      - ${WWW_PORT}:80
+    <<: *logs
+
+  stats-daemon:
+    image: ${IMAGE_NAME}:stats-daemon-${IMAGE_TAG}
+    environment:
+      DB_ADDR: "mysql"
+      DB_USER: "hlds"
+      DB_PASS: ${MYSQL_PASSWORD}
+      DB_NAME: "hlds"
+    restart: unless-stopped
     <<: *logs

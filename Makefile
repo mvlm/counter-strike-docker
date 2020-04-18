@@ -26,10 +26,17 @@ build:
 	--build-arg steam_user=$(STEAM_USER) \
 	--build-arg steam_password=$(STEAM_PASSWORD) .
 
+	docker build . \
+	-f dockerfiles/stats.dockerfile \
+	-t $(IMAGE_NAME):stats-$(IMAGE_TAG)
+
+	docker build . \
+	-f dockerfiles/stats-daemon.dockerfile \
+	-t $(IMAGE_NAME):stats-daemon-$(IMAGE_TAG)
+
 .PHONY: start
 start:
-	$(MAKE) build
-	docker-compose up -d
+	docker-compose up -d --remove-orphans
 
 .PHONY: test
 test: shellcheck test-smoke test-clean

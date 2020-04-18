@@ -8,7 +8,7 @@ EXECUTABLE="/opt/hlds/hlds_run"
 GAME="${GAME:-cstrike}"
 MAXPLAYERS="${MAXPLAYERS:-32}"
 START_MAP="${START_MAP:-de_dust2}"
-SERVER_NAME="${SERVER_NAME:-Counter-Strike 1.6 Server}"
+SERVER_NAME="${SERVER_NAME:-Counter Strike 1.6 Server}"
 
 if [ "${HLTV}" == "true" ]; then
     EXECUTABLE="/opt/hlds/hltv"
